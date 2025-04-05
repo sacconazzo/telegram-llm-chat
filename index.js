@@ -4,22 +4,24 @@ require("dotenv").config();
 
 // === CONFIG ===
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const ALLOWED_CHAT_ID = 123456789; // <-- you chat ID
+// const ALLOWED_CHAT_ID = process.env.ALLOWED_CHAT_ID; // <-- you chat ID
 const OLLAMA_URL = "http://localhost:11434/api/chat";
-const MODEL = "llama3";
+const MODEL = "llama3.1";
 const UPDATE_INTERVAL_MS = 500; // update Telegram interval
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
-const sessions = new Map();
+const sessions = new Map(); // In-memory chat history per user
 
+// Handle /start command: resets the conversation
 bot.start((ctx) => {
-  if (ctx.chat.id !== ALLOWED_CHAT_ID) return;
+  // if (ctx.chat.id !== Number(ALLOWED_CHAT_ID)) return;
   sessions.set(ctx.chat.id, []);
-  ctx.reply("🔄 Chat riavviata. Scrivimi qualcosa!");
+  ctx.reply("🔄 Chat restarted. Send me a message!");
 });
 
+// Handle incoming text messages
 bot.on("text", async (ctx) => {
-  if (ctx.chat.id !== ALLOWED_CHAT_ID) return;
+  // if (ctx.chat.id !== Number(ALLOWED_CHAT_ID)) return;
 
   const chatId = ctx.chat.id;
   if (!sessions.has(chatId)) sessions.set(chatId, []);
@@ -28,12 +30,14 @@ bot.on("text", async (ctx) => {
   const userMessage = ctx.message.text;
   history.push({ role: "user", content: userMessage });
 
+  // Send a placeholder message to update later
   const sent = await ctx.reply("💬 ...");
   let botReply = "";
   let buffer = "";
   let lastUpdateTime = 0;
 
   try {
+    // Send request to Ollama with streaming response
     const response = await axios.post(
       OLLAMA_URL,
       {
@@ -46,10 +50,11 @@ bot.on("text", async (ctx) => {
       }
     );
 
+    // Listen to streamed response chunks
     response.data.on("data", async (chunk) => {
       buffer += chunk.toString();
       const lines = buffer.split("\n");
-      buffer = lines.pop();
+      buffer = lines.pop(); // Keep last incomplete line
 
       for (const line of lines) {
         if (!line.trim()) continue;
@@ -59,7 +64,7 @@ bot.on("text", async (ctx) => {
 
           botReply += jsonLine.message.content;
 
-          // Limita gli aggiornamenti a ogni intervallo definito
+          // Edit message only if enough time has passed
           const now = Date.now();
           if (now - lastUpdateTime > UPDATE_INTERVAL_MS) {
             lastUpdateTime = now;
@@ -71,13 +76,13 @@ bot.on("text", async (ctx) => {
             );
           }
         } catch (err) {
-          console.error("Errore parsing stream:", err.message);
+          console.error("Error parsing stream:", err.message);
         }
       }
     });
 
+    // Final update once stream ends
     response.data.on("end", async () => {
-      // Aggiorna risposta finale
       await ctx.telegram.editMessageText(
         chatId,
         sent.message_id,
@@ -87,10 +92,10 @@ bot.on("text", async (ctx) => {
       history.push({ role: "assistant", content: botReply });
     });
   } catch (err) {
-    console.error("Errore nella richiesta a Ollama:", err.message);
-    ctx.reply("❌ Errore durante la richiesta all'AI.");
+    console.error("Error sending request to Ollama:", err.message);
+    ctx.reply("❌ Error while requesting AI.");
   }
 });
 
 bot.launch();
-console.log("🤖 Bot con throttling attivo!");
+console.log("🤖 Bot is running!");
