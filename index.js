@@ -6,7 +6,7 @@ require("dotenv").config();
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 // const ALLOWED_CHAT_ID = process.env.ALLOWED_CHAT_ID; // <-- you chat ID
 const OLLAMA_URL = "http://localhost:11434/api/chat";
-const MODEL = "llama3.1";
+const MODEL = process.env.MODEL || "llama3.1";
 const UPDATE_INTERVAL_MS = 500; // update Telegram interval
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
