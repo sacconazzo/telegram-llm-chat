@@ -7,7 +7,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_IDS = process.env.ALLOWED_CHAT_IDS?.split(",").map((i) => Number(i));
 const OLLAMA_URL = process.env.OLLAMA_URL || "http://localhost:11434/api/chat";
 const MODEL = process.env.MODEL || "llama3.1";
-const UPDATE_INTERVAL_MS = 500; // update Telegram interval
+const UPDATE_INTERVAL_MS = process.env.UPDATE_INTERVAL_MS || 1000; // update Telegram interval
 
 const bot = new Telegraf(TELEGRAM_BOT_TOKEN);
 const sessions = new Map(); // In-memory chat history per user
