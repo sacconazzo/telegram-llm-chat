@@ -86,12 +86,16 @@ bot.on("text", async (ctx) => {
     // Final update once stream ends
     response.data.on("end", async () => {
       if (lastReplySent !== botReply) {
-        await ctx.telegram.editMessageText(
-          chatId,
-          sent.message_id,
-          null,
-          botReply
-        );
+        try {
+          await ctx.telegram.editMessageText(
+            chatId,
+            sent.message_id,
+            null,
+            botReply
+          );
+        } catch (err) {
+          console.error("Error on end message:", err.message);
+        }
       }
       history.push({ role: "assistant", content: botReply });
     });
