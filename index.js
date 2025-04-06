@@ -87,7 +87,7 @@ bot.on("text", async (ctx) => {
         chatId,
         sent.message_id,
         null,
-        botReply
+        botReply + "\n"
       );
       history.push({ role: "assistant", content: botReply });
     });
