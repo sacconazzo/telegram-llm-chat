@@ -28,7 +28,7 @@ Messages are streamed and updated in real time, and the bot supports session res
 1. **Clone the repo**
 
 ```bash
-git clone https://github.com/youruser/telegram-llm-bot.git
+git clone https://github.com/sacconazzo/telegram-llm-chat.git
 cd telegram-llm-bot
 ```
 
