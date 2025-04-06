@@ -4,7 +4,7 @@ require("dotenv").config();
 
 // === CONFIG ===
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-// const ALLOWED_CHAT_ID = process.env.ALLOWED_CHAT_ID; // <-- you chat ID
+const CHAT_IDS = process.env.ALLOWED_CHAT_IDS?.split(",").map((i) => Number(i));
 const OLLAMA_URL = "http://localhost:11434/api/chat";
 const MODEL = process.env.MODEL || "llama3.1";
 const UPDATE_INTERVAL_MS = 500; // update Telegram interval
@@ -14,14 +14,14 @@ const sessions = new Map(); // In-memory chat history per user
 
 // Handle /start command: resets the conversation
 bot.start((ctx) => {
-  // if (ctx.chat.id !== Number(ALLOWED_CHAT_ID)) return;
+  if (CHAT_IDS && !CHAT_IDS.includes(ctx.chat.id)) return;
   sessions.set(ctx.chat.id, []);
   ctx.reply("🔄 Chat restarted. Send me a message!");
 });
 
 // Handle incoming text messages
 bot.on("text", async (ctx) => {
-  // if (ctx.chat.id !== Number(ALLOWED_CHAT_ID)) return;
+  if (CHAT_IDS && !CHAT_IDS.includes(ctx.chat.id)) return;
 
   const chatId = ctx.chat.id;
   if (!sessions.has(chatId)) sessions.set(chatId, []);
