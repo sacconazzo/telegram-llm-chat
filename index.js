@@ -33,6 +33,7 @@ bot.on("text", async (ctx) => {
   // Send a placeholder message to update later
   const sent = await ctx.reply("💬 ...");
   let botReply = "";
+  let lastReplySent = "";
   let buffer = "";
   let lastUpdateTime = 0;
 
@@ -74,6 +75,7 @@ bot.on("text", async (ctx) => {
               null,
               botReply
             );
+            lastReplySent = botReply;
           }
         } catch (err) {
           console.error("Error parsing stream:", err.message);
@@ -83,12 +85,14 @@ bot.on("text", async (ctx) => {
 
     // Final update once stream ends
     response.data.on("end", async () => {
-      await ctx.telegram.editMessageText(
-        chatId,
-        sent.message_id,
-        null,
-        botReply + "\n"
-      );
+      if (lastReplySent !== botReply) {
+        await ctx.telegram.editMessageText(
+          chatId,
+          sent.message_id,
+          null,
+          botReply
+        );
+      }
       history.push({ role: "assistant", content: botReply });
     });
   } catch (err) {
