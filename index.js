@@ -19,6 +19,28 @@ bot.start((ctx) => {
   ctx.reply("🔄 Chat restarted. Send me a message!");
 });
 
+function markdownToTelegramHTML(markdown) {
+  return (
+    markdown
+      // Bold (**text** or __text__)
+      .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+      .replace(/__(.*?)__/g, "<b>$1</b>")
+
+      // Italic (*text* or _text_)
+      .replace(/\*(.*?)\*/g, "<i>$1</i>")
+      .replace(/_(.*?)_/g, "<i>$1</i>")
+
+      // Inline code `code`
+      .replace(/`([^`\n]+?)`/g, "<code>$1</code>")
+
+      // Code block ```block```
+      .replace(/```([\s\S]*?)```/g, "<pre>$1</pre>")
+
+      // Strikethrough ~~text~~
+      .replace(/~~(.*?)~~/g, "<s>$1</s>")
+  );
+}
+
 // Handle incoming text messages
 bot.on("text", async (ctx) => {
   if (CHAT_IDS && !CHAT_IDS.includes(ctx.chat.id)) return;
@@ -73,7 +95,10 @@ bot.on("text", async (ctx) => {
               chatId,
               sent.message_id,
               null,
-              botReply
+              markdownToTelegramHTML(botReply),
+              {
+                parse_mode: "HTML",
+              }
             );
             lastReplySent = botReply;
           }
@@ -91,7 +116,10 @@ bot.on("text", async (ctx) => {
             chatId,
             sent.message_id,
             null,
-            botReply
+            markdownToTelegramHTML(botReply),
+            {
+              parse_mode: "HTML",
+            }
           );
         } catch (err) {
           console.error("Error on end message:", err.message);
