@@ -22,6 +22,11 @@ bot.start((ctx) => {
 function markdownToTelegramHTML(markdown) {
   return (
     markdown
+      // Sanitize HTML
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+
       // Bold (**text** or __text__)
       .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
       .replace(/__(.*?)__/g, "<b>$1</b>")
